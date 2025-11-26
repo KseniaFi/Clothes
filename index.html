@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dress Up Game: Learn English Clothes Vocabulary</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      background: url('videos/IMG_20251122_225742_260.jpg') center center / cover no-repeat;
+      height: 100vh;
+      font-family: 'Arial Black', Arial, sans-serif;
+      color: #fff;
+    }
+    .audio-bar {
+      position: absolute;
+      top: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .main-girl {
+      position: absolute;
+      left: 50%;
+      top: 53%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      max-width: 330px;
+      width: 28vw;
+      min-width: 180px;
+      height: auto;
+    }
+    .wardrobe-area {
+      position: absolute;
+      left: 8vw;
+      top: 17vh;
+      width: 24vw;
+      min-width: 200px;
+      max-width: 440px;
+      z-index: 30;
+      background: rgba(75,40,25,0.18);
+      border-radius: 22px;
+      box-shadow: 0 0 20px 5px #50350a;
+    }
+    .wardrobe-img {
+      width: 100%;
+      display: block;
+      border-radius: 22px;
+    }
+    .item-demo {
+      position: absolute;
+      left: 8vw;
+      top: 23vh;
+      width: 20vw;
+      min-width: 140px;
+      background: rgba(205,183,142,0.92);
+      border-radius: 14px;
+      z-index: 31;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 6px 17px 3px #50280a;
+      padding: 8px 0;
+    }
+    .clothes-img {
+      width: 85%;
+      margin: 0 auto;
+      border-radius: 8px;
+    }
+    .item-title {
+      font-size: 2em;
+      font-weight: bold;
+      color: #ffd700;
+      text-shadow: -2px 2px 0 #5e4e92, 2px 2px 0 #006f65;
+      margin: 10px 0 6px 0;
+      text-align: center;
+    }
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      width: 88%;
+      margin: 10px auto 2px auto;
+    }
+    .ctrl-btn {
+      font-size: 1.4em;
+      padding: 8px 22px;
+      border-radius: 9px;
+      background: #62372b;
+      color: #ffd700;
+      border: none;
+      margin: 2px;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-family: inherit;
+      font-weight: bold;
+      outline: none;
+      box-shadow: 0 2px 7px 1px #231003;
+    }
+    .ctrl-btn:hover, .ctrl-btn:focus {
+      background: #a35301;
+    }
+    .volume-slider {
+      width: 60vw;
+      max-width: 240px;
+      margin-top: 8px;
+    }
+    @media (max-width: 900px) {
+      .main-girl { width: 32vw; min-width: 120px; }
+      .wardrobe-area, .item-demo { width: 44vw; min-width: 120px; }
+      .item-demo { top: 33vh; }
+    }
+    @media (max-width: 600px) {
+      .main-girl { width: 60vw; min-width: 34vw; left: 53vw; }
+      .wardrobe-area, .item-demo { left: 3vw; width: 85vw; min-width: 90px; }
+      .item-demo { top: 48vh; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Аудио колонка -->
+  <div class="audio-bar">
+    <img src="videos/IMG_20251124_151845_148.png" style="height:60px;cursor:pointer;"
+         title="Play music!"
+         onclick="music.play();"
+    />
+    <audio id="music" src="videos/Untitled (24).mp3" loop></audio>
+    <input id="volumeSlider" type="range" min="0" max="1" step="0.01" value="0.7"
+           class="volume-slider"
+           oninput="document.getElementById('music').volume=this.value;">
+  </div>
+
+  <!-- Девушка для одевания -->
+  <img src="videos/IMG_20251121_000147_995.png" class="main-girl" id="girl">
+
+  <!-- Шкаф -->
+  <div class="wardrobe-area">
+    <img src="videos/InShot_20251126_102840197.png" class="wardrobe-img">
+  </div>
+
+  <!-- Демонстрация предмета одежды со стрелками -->
+  <div class="item-demo" id="itemDemo">
+    <img id="clothesImg" class="clothes-img" src="">
+    <div class="item-title" id="clothesTitle"></div>
+    <audio id="clothesAudio"></audio>
+    <div class="controls">
+      <button class="ctrl-btn" onclick="prevItem()">&#9664; Previous</button>
+      <button class="ctrl-btn" onclick="dressUp()">Wear</button>
+      <button class="ctrl-btn" onclick="undress()">Take off</button>
+      <button class="ctrl-btn" onclick="nextItem()">Next &#9654;</button>
+    </div>
+  </div>
+
+  <script>
+    /* Список одежды, картинок и аудиофайлов */
+    const clothesList = [
+      {
+        name: "Earflap beanie",
+        img: "videos/IMG_20251122_213951_665.png",
+        audio: "videos/2025-11-24-203220_163263.mp3"
+      },
+      {
+        name: "Fur bucket hat",
+        img: "videos/IMG_20251122_212926_250.png",
+        audio: "videos/2025-11-24-203444_143151.mp3"
+      },
+      {
+        name: "Santa hat",
+        img: "videos/IMG_20251122_212441_090.png",
+        audio: "videos/2025-11-24-203643_121315.mp3"
+      },
+      {
+        name: "Christmas tree hat",
+        img: "videos/IMG_20251123_094349_130.png",
+        audio: "videos/2025-11-24-203822_106753.mp3"
+      },
+      {
+        name: "Beret",
+        img: "videos/IMG_20251125_215511_528.png",
+        audio: "videos/J-20251125184854567Z.mp3"
+      },
+      // ... остальные предметы по тому же принципу
+    ];
+    let index = 0;
+    let wornItems = [];
+
+    function showItem() {
+      const item = clothesList[index];
+      document.getElementById('clothesImg').src = item.img;
+      document.getElementById('clothesTitle').innerText = item.name;
+      let clothesAudio = document.getElementById('clothesAudio');
+      clothesAudio.src = item.audio;
+      clothesAudio.currentTime = 0;
+      clothesAudio.play();
+      setTimeout(()=>{
+        document.getElementById('clothesTitle').innerText = "";
+      }, 5000);
+    }
+
+    function prevItem() {
+      index = (index - 1 + clothesList.length) % clothesList.length;
+      showItem();
+    }
+    function nextItem() {
+      index = (index + 1) % clothesList.length;
+      showItem();
+    }
+
+    function dressUp() {
+      let item = clothesList[index];
+      if (!wornItems.includes(index)) wornItems.push(index);
+      // Вставка слоя на девушку: адаптация позиций по типу одежды возможна
+      // Можно добавить overlay-элементы <img> на #girl с динамичным src/классом
+      // Для простоты пример ниже, расширение зависит от интеграции
+      let overlay = document.createElement('img');
+      overlay.className = "main-girl";
+      overlay.style.position = "absolute";
+      overlay.style.left = "50%";
+      overlay.style.top = "53%";
+      overlay.style.transform = "translate(-50%,-50%)";
+      overlay.style.zIndex = 13 + wornItems.length;
+      overlay.src = item.img;
+      overlay.id = "overlay-"+index;
+      document.body.appendChild(overlay);
+    }
+
+    function undress() {
+      let overlay = document.getElementById("overlay-"+index);
+      if (overlay) overlay.remove();
+      const idx = wornItems.indexOf(index);
+      if (idx !== -1) wornItems.splice(idx, 1);
+    }
+
+    window.onload = showItem;
+
+    // Аудио музыка
+    const music = document.getElementById('music');
+    document.querySelector('.audio-bar img').onclick = function() {
+      music.play();
+    };
+    document.getElementById('volumeSlider').addEventListener('input', function() {
+      music.volume = this.value;
+    });
+  </script>
+</body>
+</html>
