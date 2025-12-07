@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clothing Flashcards</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .category-info {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+
+        .flashcard-container {
+            width: 100%;
+            max-width: 800px;
+            height: 500px;
+            perspective: 1500px;
+            margin-bottom: 30px;
+        }
+
+        .flashcard {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+        }
+
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            overflow: hidden;
+        }
+
+        .front {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border: 3px solid transparent;
+            box-shadow: inset 0 0 30px rgba(0, 255, 0, 0.3), 0 0 20px rgba(0, 255, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .front:hover {
+            box-shadow: inset 0 0 40px rgba(0, 255, 0, 0.4), 0 0 30px rgba(0, 255, 0, 0.3);
+        }
+
+        .back {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            transform: rotateY(180deg);
+            text-align: center;
+        }
+
+        .item-image-container {
+            width: 100%;
+            height: 70%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .item-image {
+            max-width: 90%;
+            max-height: 100%;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+        }
+
+        .pair-image-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+            height: 100%;
+        }
+
+        .pair-image {
+            max-width: 45%;
+            max-height: 80%;
+            object-fit: contain;
+        }
+
+        .item-name {
+            font-size: 2.2rem;
+            font-weight: bold;
+            text-align: center;
+            color: #2c3e50;
+            padding: 15px 25px;
+            border-radius: 12px;
+            background: linear-gradient(45deg, #3498db, #2ecc71);
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+            margin-top: 10px;
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 90%;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            background: #3498db;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            min-width: 140px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn-prev {
+            background: #e74c3c;
+        }
+
+        .btn-prev:hover {
+            background: #c0392b;
+        }
+
+        .btn-flip {
+            background: #9b59b6;
+        }
+
+        .btn-flip:hover {
+            background: #8e44ad;
+        }
+
+        .btn-next {
+            background: #2ecc71;
+        }
+
+        .btn-next:hover {
+            background: #27ae60;
+        }
+
+        .progress {
+            margin-top: 20px;
+            font-size: 1.1rem;
+            color: #7f8c8d;
+            text-align: center;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .audio-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.2));
+            z-index: 100;
+        }
+
+        .audio-indicator:hover {
+            transform: scale(1.1);
+        }
+
+        .audio-indicator.playing {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .flashcard-container {
+                height: 400px;
+            }
+            
+            .item-name {
+                font-size: 1.8rem;
+                padding: 12px 20px;
+                min-height: 60px;
+            }
+            
+            .btn {
+                padding: 10px 20px;
+                font-size: 1rem;
+                min-width: 120px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .flashcard-container {
+                height: 350px;
+            }
+            
+            .item-name {
+                font-size: 1.5rem;
+                padding: 10px 15px;
+                min-height: 50px;
+            }
+            
+            .btn {
+                padding: 8px 15px;
+                font-size: 0.9rem;
+                min-width: 100px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .pair-image-container {
+                gap: 10px;
+            }
+            
+            .pair-image {
+                max-width: 48%;
+            }
+            
+            .audio-indicator {
+                width: 40px;
+                height: 40px;
+                bottom: 15px;
+                right: 15px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .flashcard-container {
+                height: 300px;
+            }
+            
+            .item-name {
+                font-size: 1.3rem;
+            }
+            
+            .btn {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+                min-width: 90px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Clothing Flashcards</h1>
+        <div class="category-info">Learn clothing vocabulary in English</div>
+    </div>
+
+    <div class="flashcard-container">
+        <div class="flashcard" id="flashcard">
+            <div class="flashcard-face front">
+                <div class="item-image-container" id="itemImageContainer">
+                    <!-- Image(s) will be inserted here -->
+                </div>
+            </div>
+            <div class="flashcard-face back">
+                <div class="item-image-container" id="backItemImageContainer">
+                    <!-- Same image(s) will be inserted here -->
+                </div>
+                <div class="item-name" id="itemName"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="progress" id="progress">Item 1 of 51</div>
+
+    <div class="controls">
+        <button class="btn btn-prev" id="prevBtn">Previous</button>
+        <button class="btn btn-flip" id="flipBtn">Flip Card</button>
+        <button class="btn btn-next" id="nextBtn">Next</button>
+    </div>
+
+    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzM0OThkYiIgZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bS0yIDE1bC01LTUgMS40MS0xLjQxTDEwIDE0LjE3bDcuNTktNy41OUwxOSA4bC05IDl6Ii8+PC9zdmc+" 
+         alt="Audio" 
+         class="audio-indicator" 
+         id="audioIndicator"
+         title="Click to replay pronunciation">
+
+    <script>
+        // Clothing data from original game with adapted images
+        const clothingItems = [
+            // Headwear
+            {
+                name: "Earflap beanie",
+                image: "videos/IMG_20251122_213951_665.png",
+                audio: "videos/2025-11-24-203220_163263.mp3",
+                type: "head"
+            },
+            {
+                name: "Fur bucket hat",
+                image: "videos/IMG_20251122_212926_250.png",
+                audio: "videos/2025-11-24-203444_143151.mp3",
+                type: "head"
+            },
+            {
+                name: "Santa hat",
+                image: "videos/IMG_20251122_212441_090.png",
+                audio: "videos/2025-11-24-203643_121315.mp3",
+                type: "head"
+            },
+            {
+                name: "Christmas tree hat",
+                image: "videos/IMG_20251123_094349_130.png",
+                audio: "videos/2025-11-24-203822_106753.mp3",
+                type: "head"
+            },
+            {
+                name: "Beret",
+                image: "videos/IMG_20251125_215511_528.png",
+                audio: "videos/J-20251125184854567Z.mp3",
+                type: "head"
+            },
+            {
+                name: "Fur hat",
+                image: "videos/IMG_20251122_212143_431.png",
+                audio: "videos/2025-11-24-204007_140944.mp3",
+                type: "head"
+            },
+            {
+                name: "Top hat",
+                image: "videos/IMG_20251122_211929_545.png",
+                audio: "videos/2025-11-24-204151_167606.mp3",
+                type: "head"
+            },
+            {
+                name: "Baseball cap",
+                image: "videos/IMG_20251121_224253_049.png",
+                audio: "videos/2025-11-24-204621_190240.mp3",
+                type: "head"
+            },
+            {
+                name: "Cuffed beanie",
+                image: "videos/IMG_20251121_223427_753.png",
+                audio: "videos/2025-11-24-204811_137377.mp3",
+                type: "head"
+            },
+            {
+                name: "Trapper hat",
+                image: "videos/IMG_20251127_180457_995(1).png",
+                audio: "videos/2025-11-24-204944_199744.mp3",
+                type: "head"
+            },
+            {
+                name: "Bobble beanie [BrE] / Pom-pom beanie [AmE]",
+                image: "videos/IMG_20251121_222742_175.png",
+                audio: "videos/2025-11-24-205140_166235.mp3",
+                type: "head"
+            },
+            // Outerwear
+            {
+                name: "Hooded puffer coat",
+                image: "videos/IMG_20251121_215412_184.png",
+                audio: "videos/2025-11-24-205407_156494.mp3",
+                type: "body"
+            },
+            {
+                name: "Raincoat",
+                image: "videos/IMG_20251121_212659_247.png",
+                audio: "videos/2025-11-24-205616_131562.mp3",
+                type: "body"
+            },
+            {
+                name: "Ski suit",
+                image: "videos/IMG_20251121_212149_011.png",
+                audio: "videos/J-20251124130413310Z.mp3",
+                type: "body"
+            },
+            {
+                name: "Trench coat",
+                image: "videos/1763740502.png",
+                audio: "videos/6924584f362d1.mp3",
+                type: "body"
+            },
+            {
+                name: "Quilted jacket",
+                image: "videos/1763741225.png",
+                audio: "videos/J-20251124202147819Z.mp3",
+                type: "body"
+            },
+            {
+                name: "Fur coat",
+                image: "videos/1763670029.png",
+                audio: "videos/J-20251124202318349Z.mp3",
+                type: "body"
+            },
+            {
+                name: "Bomber jacket",
+                image: "videos/IMG_20251123_094649_779.png",
+                audio: "videos/J-20251124202424803Z.mp3",
+                type: "body"
+            },
+            {
+                name: "Wool coat",
+                image: "videos/IMG_20251123_094645_096.png",
+                audio: "videos/J-20251124202530664Z.mp3",
+                type: "body"
+            },
+            {
+                name: "Sweatshirt",
+                image: "videos/IMG_20251121_212828_849.png",
+                audio: "videos/J-20251124202648042Z.mp3",
+                type: "body"
+            },
+            {
+                name: "Hoodie",
+                image: "videos/IMG_20251121_212758_972.png",
+                audio: "videos/J-20251124202750812Z.mp3",
+                type: "body"
+            },
+            {
+                name: "Polo neck (jumper) [BrE] / Turtleneck (sweater) [AmE]",
+                image: "videos/IMG_20251121_212254_262.png",
+                audio: "videos/J-20251124202903116Z.mp3",
+                type: "body"
+            },
+            {
+                name: "Shirt",
+                image: "videos/IMG_20251121_211313_524.png",
+                audio: "videos/J-20251124203328109Z.mp3",
+                type: "body"
+            },
+            {
+                name: "Pyjamas [BrE] / Pajamas [AmE]",
+                image: "videos/1763743515.png",
+                audio: "videos/J-20251124203734050Z.mp3",
+                type: "body"
+            },
+            {
+                name: "Leather jacket",
+                image: "videos/1763742799.png",
+                audio: "videos/J-20251124203855014Z.mp3",
+                type: "body"
+            },
+            // Bottoms
+            {
+                name: "Trousers [BrE] / Pants [AmE]",
+                image: "videos/1763742036.png",
+                audio: "videos/J-20251124204019150Z.mp3",
+                type: "legs"
+            },
+            {
+                name: "Jeans",
+                image: "videos/1763741798.png",
+                audio: "videos/J-20251124204139953Z.mp3",
+                type: "legs"
+            },
+            {
+                name: "Shorts",
+                image: "videos/1763741568(1).png",
+                audio: "videos/J-20251124204250477Z.mp3",
+                type: "legs"
+            },
+            {
+                name: "Skirt",
+                image: "videos/IMG_20251120_225409_303(1).png",
+                audio: "videos/J-20251125180601863Z.mp3",
+                type: "legs"
+            },
+            // Tops
+            {
+                name: "T-shirt",
+                image: "videos/1763741462.png",
+                audio: "videos/J-20251124204400858Z.mp3",
+                type: "body"
+            },
+            {
+                name: "Tracksuit",
+                image: "videos/IMG_20251128_163748_906.png",
+                audio: "videos/J-20251124204543057Z.mp3",
+                type: "body"
+            },
+            {
+                name: "Jumpsuit",
+                image: "videos/IMG_20251125_012130_365.png",
+                audio: "videos/J-20251125180340880Z.mp3",
+                type: "body"
+            },
+            {
+                name: "Suit",
+                image: "videos/1763742142.png",
+                audio: "videos/J-20251124204700560Z.mp3",
+                type: "body"
+            },
+            {
+                name: "Dress",
+                image: "videos/1763740982.png",
+                audio: "videos/J-20251124204816886Z.mp3",
+                type: "body"
+            },
+            {
+                name: "Jumper [BrE] / Sweater [AmE]",
+                image: "videos/1763740616.png",
+                audio: "videos/J-20251124211616919Z.mp3",
+                type: "body"
+            },
+            {
+                name: "Pinafore (dress) [BrE] / Jumper (dress) [AmE]",
+                image: "videos/IMG_20251124_154045_944.png",
+                audio: "videos/J-20251124210730054Z.mp3",
+                type: "body"
+            },
+            {
+                name: "Cardigan",
+                image: "videos/1763740245.png",
+                audio: "videos/J-20251125175821251Z.mp3",
+                type: "body"
+            },
+            {
+                name: "Blouse",
+                image: "videos/1763669832.png",
+                audio: "videos/J-20251125180448315Z.mp3",
+                type: "body"
+            },
+            {
+                name: "Scarf",
+                image: "videos/IMG_20251121_211739_731.png",
+                audio: "videos/J-20251125180716944Z.mp3",
+                type: "body"
+            },
+            {
+                name: "Tie",
+                image: "videos/IMG_20251121_211415_189.png",
+                audio: "videos/J-20251125180834409Z.mp3",
+                type: "body"
+            },
+            // Handwear (pairs)
+            {
+                name: "Mittens",
+                images: {
+                    left: "videos/IMG_20251128_151203_478.png",
+                    right: "videos/IMG_20251128_151216_098.png"
+                },
+                audio: "videos/J-20251128111553821Z.mp3",
+                type: "hands",
+                isPair: true
+            },
+            {
+                name: "Gloves",
+                images: {
+                    left: "videos/IMG_20251128_150512_784.png",
+                    right: "videos/IMG_20251128_150950_624.png"
+                },
+                audio: "videos/J-20251128112340450Z.mp3",
+                type: "hands",
+                isPair: true
+            },
+            // Socks (pairs)
+            {
+                name: "Knee-high socks",
+                images: {
+                    left: "videos/IMG_20251128_005653_418.png",
+                    right: "videos/IMG_20251128_005435_138.png"
+                },
+                audio: "videos/J-20251125181214812Z.mp3",
+                type: "legs",
+                isPair: true
+            },
+            {
+                name: "Over-the-knee socks",
+                images: {
+                    left: "videos/1763744330.png",
+                    right: "videos/1763744330(1).png"
+                },
+                audio: "videos/J-20251125181431791Z.mp3",
+                type: "legs",
+                isPair: true
+            },
+            {
+                name: "Leggins",
+                image: "videos/1763744197.png",
+                audio: "videos/J-20251125181555194Z.mp3",
+                type: "legs"
+            },
+            // Footwear (pairs)
+            {
+                name: "Trainers [BrE] / Sneakers [AmE]",
+                images: {
+                    left: "videos/IMG_20251123_151007_291(1).png",
+                    right: "videos/IMG_20251123_151007_291.png"
+                },
+                audio: "videos/J-20251125181731846Z.mp3",
+                type: "feet",
+                isPair: true
+            },
+            {
+                name: "Rain boots",
+                images: {
+                    left: "videos/1763743394.png",
+                    right: "videos/1763743394(1).png"
+                },
+                audio: "videos/J-20251125181904099Z.mp3",
+                type: "feet",
+                isPair: true
+            },
+            {
+                name: "Thigh-high boots",
+                images: {
+                    left: "videos/1763743296.png",
+                    right: "videos/1763743296(1).png"
+                },
+                audio: "videos/J-20251125183659959Z.mp3",
+                type: "feet",
+                isPair: true
+            },
+            {
+                name: "Heeled over-the-knee boots",
+                images: {
+                    left: "videos/IMG_20251125_222515_088(1).png",
+                    right: "videos/IMG_20251125_222515_088.png"
+                },
+                audio: "videos/J-20251125184613900Z.mp3",
+                type: "feet",
+                isPair: true
+            },
+            {
+                name: "Heeled ankle boots",
+                images: {
+                    left: "videos/IMG_20251128_003550_092.png",
+                    right: "videos/IMG_20251128_003550_092(1).png"
+                },
+                audio: "videos/J-20251125183935749Z.mp3",
+                type: "feet",
+                isPair: true
+            },
+            {
+                name: "Fluffy slippers",
+                images: {
+                    left: "videos/1763743348.png",
+                    right: "videos/1763743348(1).png"
+                },
+                audio: "videos/J-20251125184120836Z.mp3",
+                type: "feet",
+                isPair: true
+            }
+        ];
+
+        // State variables
+        let currentItemIndex = 0;
+        let currentAudio = null;
+        let isFlipped = false;
+
+        // DOM elements
+        const flashcard = document.getElementById('flashcard');
+        const itemImageContainer = document.getElementById('itemImageContainer');
+        const backItemImageContainer = document.getElementById('backItemImageContainer');
+        const itemName = document.getElementById('itemName');
+        const prevBtn = document.getElementById('prevBtn');
+        const flipBtn = document.getElementById('flipBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const progress = document.getElementById('progress');
+        const audioIndicator = document.getElementById('audioIndicator');
+
+        // Initialize
+        function init() {
+            displayCurrentItem();
+            
+            // Event handlers
+            flashcard.addEventListener('click', flipCard);
+            prevBtn.addEventListener('click', showPreviousItem);
+            nextBtn.addEventListener('click', showNextItem);
+            flipBtn.addEventListener('click', flipCard);
+            audioIndicator.addEventListener('click', replayPronunciation);
+            
+            // Auto-play audio when card is flipped to back side
+            flashcard.addEventListener('transitionend', () => {
+                if (isFlipped) {
+                    playPronunciation();
+                }
+            });
+        }
+
+        // Display current item
+        function displayCurrentItem() {
+            const item = clothingItems[currentItemIndex];
+            
+            // Clear containers
+            itemImageContainer.innerHTML = '';
+            backItemImageContainer.innerHTML = '';
+            
+            // Display images
+            if (item.isPair) {
+                // Create pair container for front
+                const frontPairContainer = document.createElement('div');
+                frontPairContainer.className = 'pair-image-container';
+                
+                // Left image
+                const leftImg = document.createElement('img');
+                leftImg.src = item.images.left;
+                leftImg.alt = `${item.name} (left)`;
+                leftImg.className = 'pair-image';
+                frontPairContainer.appendChild(leftImg);
+                
+                // Right image
+                const rightImg = document.createElement('img');
+                rightImg.src = item.images.right;
+                rightImg.alt = `${item.name} (right)`;
+                rightImg.className = 'pair-image';
+                frontPairContainer.appendChild(rightImg);
+                
+                itemImageContainer.appendChild(frontPairContainer);
+                
+                // Create pair container for back
+                const backPairContainer = document.createElement('div');
+                backPairContainer.className = 'pair-image-container';
+                
+                // Left image for back
+                const backLeftImg = document.createElement('img');
+                backLeftImg.src = item.images.left;
+                backLeftImg.alt = `${item.name} (left)`;
+                backLeftImg.className = 'pair-image';
+                backPairContainer.appendChild(backLeftImg);
+                
+                // Right image for back
+                const backRightImg = document.createElement('img');
+                backRightImg.src = item.images.right;
+                backRightImg.alt = `${item.name} (right)`;
+                backRightImg.className = 'pair-image';
+                backPairContainer.appendChild(backRightImg);
+                
+                backItemImageContainer.appendChild(backPairContainer);
+            } else {
+                // Single image for front
+                const frontImg = document.createElement('img');
+                frontImg.src = item.image;
+                frontImg.alt = item.name;
+                frontImg.className = 'item-image';
+                itemImageContainer.appendChild(frontImg);
+                
+                // Single image for back
+                const backImg = document.createElement('img');
+                backImg.src = item.image;
+                backImg.alt = item.name;
+                backImg.className = 'item-image';
+                backItemImageContainer.appendChild(backImg);
+            }
+            
+            // Set name
+            itemName.textContent = item.name;
+            
+            // Update progress
+            progress.textContent = `Item ${currentItemIndex + 1} of ${clothingItems.length}`;
+            
+            // Reset card to front if it was flipped
+            if (isFlipped) {
+                flashcard.classList.remove('flipped');
+                isFlipped = false;
+            }
+            
+            // Stop any playing audio
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                audioIndicator.classList.remove('playing');
+            }
+        }
+
+        // Show previous item
+        function showPreviousItem() {
+            currentItemIndex = (currentItemIndex - 1 + clothingItems.length) % clothingItems.length;
+            displayCurrentItem();
+        }
+
+        // Show next item
+        function showNextItem() {
+            currentItemIndex = (currentItemIndex + 1) % clothingItems.length;
+            displayCurrentItem();
+        }
+
+        // Flip card
+        function flipCard() {
+            isFlipped = !isFlipped;
+            flashcard.classList.toggle('flipped');
+            
+            // Update flip button text
+            flipBtn.textContent = isFlipped ? 'Show Image' : 'Flip Card';
+        }
+
+        // Play pronunciation
+        function playPronunciation() {
+            const item = clothingItems[currentItemIndex];
+            
+            // Stop previous audio
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+            }
+            
+            // Create and play new audio
+            currentAudio = new Audio(item.audio);
+            currentAudio.volume = 0.8;
+            
+            // Add playing indicator
+            audioIndicator.classList.add('playing');
+            
+            currentAudio.play();
+            
+            // Remove playing indicator when done
+            currentAudio.addEventListener('ended', () => {
+                audioIndicator.classList.remove('playing');
+            });
+            
+            currentAudio.addEventListener('error', () => {
+                audioIndicator.classList.remove('playing');
+                console.error('Error loading audio:', item.audio);
+            });
+        }
+
+        // Replay pronunciation
+        function replayPronunciation() {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+            }
+            playPronunciation();
+        }
+
+        // Start the application
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
