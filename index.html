@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clothing Memory Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: url('videos/IMG_20251122_225742_260.jpg') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 30px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            margin-bottom: 10px;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .stat span {
+            color: #3498db;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            max-width: 800px;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .game-board {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .game-board {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .card {
+            aspect-ratio: 3/4;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card.matched .card-inner {
+            box-shadow: 0 0 20px rgba(46, 204, 113, 0.5);
+        }
+
+        .card-front,
+        .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #3498db, #2ecc71);
+            color: white;
+            font-size: 2rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            transform: rotateY(180deg);
+            padding: 20px;
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #e74c3c, #9b59b6);
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xMiAyQzYuNDggMiAyIDYuNDggMiAxMnM0LjQ4IDEwIDEwIDEwIDEwLTQuNDggMTAtMTBTMTcuNTIgMiAxMiAyem0wIDE4Yy00LjQyIDAtOC0zLjU4LTgtOHMzLjU4LTggOC04IDggMy41OCA4IDgtMy41OCA4LTggOHoiLz48L3N2Zz4=');
+            background-size: 60%;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .card-image-container {
+            width: 100%;
+            height: 70%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        .card-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .pair-image-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            width: 100%;
+            height: 100%;
+        }
+
+        .pair-image {
+            max-width: 48%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+
+        .card-name {
+            width: 100%;
+            text-align: center;
+            padding: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #2c3e50;
+            background: rgba(255, 255, 255, 0.9);
+            border-top: 2px solid #3498db;
+            word-wrap: break-word;
+            hyphens: auto;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            background: #3498db;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            min-width: 140px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn-reset {
+            background: #e74c3c;
+        }
+
+        .btn-reset:hover {
+            background: #c0392b;
+        }
+
+        .btn-hint {
+            background: #9b59b6;
+        }
+
+        .btn-hint:hover {
+            background: #8e44ad;
+        }
+
+        .btn-new-game {
+            background: #2ecc71;
+        }
+
+        .btn-new-game:hover {
+            background: #27ae60;
+        }
+
+        .message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            z-index: 1000;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .message h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+        }
+
+        .message p {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #34495e;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .difficulty {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .difficulty-btn {
+            padding: 8px 15px;
+            background: #95a5a6;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .difficulty-btn.active {
+            background: #3498db;
+        }
+
+        .difficulty-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -60%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+
+        @keyframes match {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .card.matched .card-inner {
+            animation: match 0.5s ease;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .game-board {
+                gap: 10px;
+            }
+            
+            .card-name {
+                font-size: 0.9rem;
+                padding: 8px;
+            }
+            
+            .btn {
+                padding: 10px 20px;
+                font-size: 1rem;
+                min-width: 120px;
+            }
+            
+            .stat {
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.7rem;
+            }
+            
+            .game-board {
+                gap: 8px;
+            }
+            
+            .card-name {
+                font-size: 0.8rem;
+                padding: 6px;
+            }
+            
+            .btn {
+                padding: 8px 15px;
+                font-size: 0.9rem;
+                min-width: 100px;
+            }
+            
+            .game-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .stats {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-header">
+        <h1>🧥 Clothing Memory Game 👖</h1>
+        <div class="difficulty">
+            <button class="difficulty-btn active" data-difficulty="easy">Easy (8 cards)</button>
+            <button class="difficulty-btn" data-difficulty="medium">Medium (12 cards)</button>
+            <button class="difficulty-btn" data-difficulty="hard">Hard (16 cards)</button>
+        </div>
+    </div>
+
+    <div class="game-info">
+        <div class="stats">
+            <div class="stat">Moves: <span id="moves">0</span></div>
+            <div class="stat">Matches: <span id="matches">0</span>/<span id="totalPairs">0</span></div>
+            <div class="stat">Time: <span id="timer">0s</span></div>
+        </div>
+    </div>
+
+    <div class="game-board" id="gameBoard">
+        <!-- Cards will be generated here -->
+    </div>
+
+    <div class="controls">
+        <button class="btn btn-reset" id="resetBtn">Reset Game</button>
+        <button class="btn btn-hint" id="hintBtn">Hint (3 left)</button>
+        <button class="btn btn-new-game" id="newGameBtn">New Game</button>
+    </div>
+
+    <div class="message" id="winMessage">
+        <h2>🎉 Congratulations! 🎉</h2>
+        <p>You've matched all clothing items!</p>
+        <p>Moves: <span id="finalMoves">0</span></p>
+        <p>Time: <span id="finalTime">0s</span></p>
+        <button class="btn btn-new-game" onclick="startNewGame()">Play Again</button>
+    </div>
+
+    <script>
+        // Clothing data from original game
+        const clothingItems = [
+            // Headwear
+            {
+                name: "Earflap beanie",
+                image: "videos/IMG_20251122_213951_665.png",
+                type: "head"
+            },
+            {
+                name: "Fur bucket hat",
+                image: "videos/IMG_20251122_212926_250.png",
+                type: "head"
+            },
+            {
+                name: "Santa hat",
+                image: "videos/IMG_20251122_212441_090.png",
+                type: "head"
+            },
+            {
+                name: "Christmas tree hat",
+                image: "videos/IMG_20251123_094349_130.png",
+                type: "head"
+            },
+            // Outerwear
+            {
+                name: "Hooded puffer coat",
+                image: "videos/IMG_20251121_215412_184.png",
+                type: "body"
+            },
+            {
+                name: "Raincoat",
+                image: "videos/IMG_20251121_212659_247.png",
+                type: "body"
+            },
+            {
+                name: "Trench coat",
+                image: "videos/1763740502.png",
+                type: "body"
+            },
+            {
+                name: "Bomber jacket",
+                image: "videos/IMG_20251123_094649_779.png",
+                type: "body"
+            },
+            // Bottoms
+            {
+                name: "Trousers [BrE] / Pants [AmE]",
+                image: "videos/1763742036.png",
+                type: "legs"
+            },
+            {
+                name: "Jeans",
+                image: "videos/1763741798.png",
+                type: "legs"
+            },
+            // Tops
+            {
+                name: "T-shirt",
+                image: "videos/1763741462.png",
+                type: "body"
+            },
+            {
+                name: "Dress",
+                image: "videos/1763740982.png",
+                type: "body"
+            },
+            // Handwear (pairs)
+            {
+                name: "Mittens",
+                images: {
+                    left: "videos/IMG_20251128_151203_478.png",
+                    right: "videos/IMG_20251128_151216_098.png"
+                },
+                type: "hands",
+                isPair: true
+            },
+            {
+                name: "Gloves",
+                images: {
+                    left: "videos/IMG_20251128_150512_784.png",
+                    right: "videos/IMG_20251128_150950_624.png"
+                },
+                type: "hands",
+                isPair: true
+            },
+            // Footwear (pairs)
+            {
+                name: "Trainers [BrE] / Sneakers [AmE]",
+                images: {
+                    left: "videos/IMG_20251123_151007_291(1).png",
+                    right: "videos/IMG_20251123_151007_291.png"
+                },
+                type: "feet",
+                isPair: true
+            },
+            {
+                name: "Rain boots",
+                images: {
+                    left: "videos/1763743394.png",
+                    right: "videos/1763743394(1).png"
+                },
+                type: "feet",
+                isPair: true
+            }
+        ];
+
+        // Game state
+        let gameState = {
+            cards: [],
+            flippedCards: [],
+            matchedPairs: 0,
+            totalPairs: 0,
+            moves: 0,
+            gameStarted: false,
+            timer: 0,
+            timerInterval: null,
+            canFlip: true,
+            hintsLeft: 3,
+            difficulty: 'easy'
+        };
+
+        // DOM elements
+        const gameBoard = document.getElementById('gameBoard');
+        const movesElement = document.getElementById('moves');
+        const matchesElement = document.getElementById('matches');
+        const totalPairsElement = document.getElementById('totalPairs');
+        const timerElement = document.getElementById('timer');
+        const resetBtn = document.getElementById('resetBtn');
+        const hintBtn = document.getElementById('hintBtn');
+        const newGameBtn = document.getElementById('newGameBtn');
+        const winMessage = document.getElementById('winMessage');
+        const finalMoves = document.getElementById('finalMoves');
+        const finalTime = document.getElementById('finalTime');
+        const difficultyBtns = document.querySelectorAll('.difficulty-btn');
+
+        // Initialize game
+        function initGame() {
+            // Set difficulty
+            const activeDifficulty = document.querySelector('.difficulty-btn.active');
+            gameState.difficulty = activeDifficulty.dataset.difficulty;
+            
+            // Clear game board
+            gameBoard.innerHTML = '';
+            
+            // Reset game state
+            gameState.cards = [];
+            gameState.flippedCards = [];
+            gameState.matchedPairs = 0;
+            gameState.moves = 0;
+            gameState.gameStarted = false;
+            gameState.canFlip = true;
+            gameState.hintsLeft = 3;
+            
+            // Stop timer if running
+            if (gameState.timerInterval) {
+                clearInterval(gameState.timerInterval);
+                gameState.timerInterval = null;
+            }
+            gameState.timer = 0;
+            
+            // Update UI
+            updateGameInfo();
+            
+            // Create cards based on difficulty
+            createCards();
+            renderCards();
+            
+            // Hide win message
+            winMessage.classList.remove('show');
+        }
+
+        // Create cards for current difficulty
+        function createCards() {
+            let numPairs;
+            switch(gameState.difficulty) {
+                case 'easy':
+                    numPairs = 4;
+                    break;
+                case 'medium':
+                    numPairs = 6;
+                    break;
+                case 'hard':
+                    numPairs = 8;
+                    break;
+                default:
+                    numPairs = 4;
+            }
+            
+            // Select random items
+            const shuffledItems = [...clothingItems]
+                .sort(() => Math.random() - 0.5)
+                .slice(0, numPairs);
+            
+            // Create pairs
+            const pairs = [];
+            shuffledItems.forEach(item => {
+                pairs.push({...item, id: Math.random()});
+                pairs.push({...item, id: Math.random()});
+            });
+            
+            // Shuffle pairs
+            gameState.cards = pairs.sort(() => Math.random() - 0.5);
+            gameState.totalPairs = numPairs;
+        }
+
+        // Render cards to DOM
+        function renderCards() {
+            gameState.cards.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'card';
+                cardElement.dataset.index = index;
+                
+                const cardInner = document.createElement('div');
+                cardInner.className = 'card-inner';
+                
+                // Front side (content)
+                const frontSide = document.createElement('div');
+                frontSide.className = 'card-front';
+                
+                const imageContainer = document.createElement('div');
+                imageContainer.className = 'card-image-container';
+                
+                if (card.isPair) {
+                    const pairContainer = document.createElement('div');
+                    pairContainer.className = 'pair-image-container';
+                    
+                    const leftImg = document.createElement('img');
+                    leftImg.src = card.images.left;
+                    leftImg.alt = `${card.name} (left)`;
+                    leftImg.className = 'pair-image';
+                    
+                    const rightImg = document.createElement('img');
+                    rightImg.src = card.images.right;
+                    rightImg.alt = `${card.name} (right)`;
+                    rightImg.className = 'pair-image';
+                    
+                    pairContainer.appendChild(leftImg);
+                    pairContainer.appendChild(rightImg);
+                    imageContainer.appendChild(pairContainer);
+                } else {
+                    const img = document.createElement('img');
+                    img.src = card.image;
+                    img.alt = card.name;
+                    img.className = 'card-image';
+                    imageContainer.appendChild(img);
+                }
+                
+                frontSide.appendChild(imageContainer);
+                
+                const nameElement = document.createElement('div');
+                nameElement.className = 'card-name';
+                nameElement.textContent = card.name;
+                frontSide.appendChild(nameElement);
+                
+                // Back side (cover)
+                const backSide = document.createElement('div');
+                backSide.className = 'card-back';
+                
+                cardInner.appendChild(frontSide);
+                cardInner.appendChild(backSide);
+                cardElement.appendChild(cardInner);
+                
+                cardElement.addEventListener('click', () => flipCard(index));
+                gameBoard.appendChild(cardElement);
+            });
+        }
+
+        // Flip card
+        function flipCard(index) {
+            if (!gameState.canFlip) return;
+            if (gameState.flippedCards.includes(index)) return;
+            if (gameState.cards[index].matched) return;
+            
+            const card = document.querySelector(`.card[data-index="${index}"]`);
+            if (!card || card.classList.contains('flipped')) return;
+            
+            // Start timer on first move
+            if (!gameState.gameStarted) {
+                startTimer();
+                gameState.gameStarted = true;
+            }
+            
+            // Flip card
+            card.classList.add('flipped');
+            gameState.flippedCards.push(index);
+            
+            // Check for match if two cards are flipped
+            if (gameState.flippedCards.length === 2) {
+                gameState.canFlip = false;
+                gameState.moves++;
+                updateGameInfo();
+                
+                const card1Index = gameState.flippedCards[0];
+                const card2Index = gameState.flippedCards[1];
+                const card1 = gameState.cards[card1Index];
+                const card2 = gameState.cards[card2Index];
+                
+                if (card1.name === card2.name) {
+                    // Match found
+                    setTimeout(() => {
+                        document.querySelector(`.card[data-index="${card1Index}"]`).classList.add('matched');
+                        document.querySelector(`.card[data-index="${card2Index}"]`).classList.add('matched');
+                        
+                        card1.matched = true;
+                        card2.matched = true;
+                        gameState.matchedPairs++;
+                        
+                        gameState.flippedCards = [];
+                        gameState.canFlip = true;
+                        updateGameInfo();
+                        
+                        // Check for win
+                        if (gameState.matchedPairs === gameState.totalPairs) {
+                            endGame();
+                        }
+                    }, 500);
+                } else {
+                    // No match - flip back
+                    setTimeout(() => {
+                        document.querySelector(`.card[data-index="${card1Index}"]`).classList.remove('flipped');
+                        document.querySelector(`.card[data-index="${card2Index}"]`).classList.remove('flipped');
+                        
+                        gameState.flippedCards = [];
+                        gameState.canFlip = true;
+                    }, 1000);
+                }
+            }
+        }
+
+        // Start timer
+        function startTimer() {
+            gameState.timerInterval = setInterval(() => {
+                gameState.timer++;
+                timerElement.textContent = `${gameState.timer}s`;
+            }, 1000);
+        }
+
+        // Update game info display
+        function updateGameInfo() {
+            movesElement.textContent = gameState.moves;
+            matchesElement.textContent = gameState.matchedPairs;
+            totalPairsElement.textContent = gameState.totalPairs;
+            timerElement.textContent = `${gameState.timer}s`;
+            hintBtn.textContent = `Hint (${gameState.hintsLeft} left)`;
+        }
+
+        // Show hint
+        function showHint() {
+            if (gameState.hintsLeft <= 0 || !gameState.gameStarted) return;
+            
+            // Find two unmatched cards
+            const unmatchedCards = gameState.cards
+                .map((card, index) => ({...card, index}))
+                .filter(card => !card.matched && !gameState.flippedCards.includes(card.index));
+            
+            if (unmatchedCards.length < 2) return;
+            
+            // Pick a random pair
+            const randomCard = unmatchedCards[Math.floor(Math.random() * unmatchedCards.length)];
+            const matchingCard = unmatchedCards.find(card => 
+                card.name === randomCard.name && card.index !== randomCard.index
+            );
+            
+            if (!matchingCard) return;
+            
+            // Briefly show the matching cards
+            const card1 = document.querySelector(`.card[data-index="${randomCard.index}"]`);
+            const card2 = document.querySelector(`.card[data-index="${matchingCard.index}"]`);
+            
+            card1.classList.add('flipped');
+            card2.classList.add('flipped');
+            
+            // Flip back after 1 second
+            setTimeout(() => {
+                card1.classList.remove('flipped');
+                card2.classList.remove('flipped');
+            }, 1000);
+            
+            gameState.hintsLeft--;
+            updateGameInfo();
+        }
+
+        // End game
+        function endGame() {
+            clearInterval(gameState.timerInterval);
+            finalMoves.textContent = gameState.moves;
+            finalTime.textContent = `${gameState.timer}s`;
+            
+            setTimeout(() => {
+                winMessage.classList.add('show');
+            }, 500);
+        }
+
+        // Start new game
+        function startNewGame() {
+            initGame();
+        }
+
+        // Event listeners
+        resetBtn.addEventListener('click', initGame);
+        newGameBtn.addEventListener('click', startNewGame);
+        hintBtn.addEventListener('click', showHint);
+
+        // Difficulty buttons
+        difficultyBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                difficultyBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                initGame();
+            });
+        });
+
+        // Initialize first game
+        initGame();
+    </script>
+</body>
+</html>
